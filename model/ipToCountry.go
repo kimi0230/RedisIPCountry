@@ -28,6 +28,13 @@ func (c *Client) IpToScore(ip string) int64 {
 	return score
 }
 
+/*
+ImportIpsToRedis :
+產生 zset
+key: ip2cityid
+member: $cityID
+score: $resIP
+*/
 func (c *Client) ImportIpsToRedis(filename string) {
 	res := utils.CSVReader(filename)
 	/*
