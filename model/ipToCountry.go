@@ -28,13 +28,11 @@ func (c *Client) IpToScore(ip string) int64 {
 	return score
 }
 
-/*
-ImportIpsToRedis :
-產生 zset
-key: ip2cityid
-member: $cityID
-score: $resIP
-*/
+/**
+ * @description: 產生 zset: key = ip2cityid, member = $cityID, score = $resIP
+ * @param {string} filename
+ * @return {*}
+ */
 func (c *Client) ImportIpsToRedis(filename string) {
 	res := utils.CSVReader(filename)
 	/*
@@ -66,6 +64,7 @@ func (c *Client) ImportIpsToRedis(filename string) {
 				continue
 			}
 		}
+
 		// 因為多個IP範圍可能會對應到同一個城市 ID, 故在後面_ 加上目前已有城市ID數量
 		cityID := row[2] + "_" + strconv.Itoa(count)
 		pipe.ZAdd(ctx, "ip2cityid:", &redis.Z{Member: cityID, Score: float64(resIP)})
@@ -76,6 +75,7 @@ func (c *Client) ImportIpsToRedis(filename string) {
 			}
 		}
 	}
+
 	if _, err := pipe.Exec(ctx); err != nil {
 		log.Println("pipeline err in ImportIpsToRedis: ", err)
 		return
