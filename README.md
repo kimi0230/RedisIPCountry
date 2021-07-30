@@ -1,9 +1,13 @@
 # Redis IP to Country
-Mapping IP to Country by [go-redis/redis/v8](https://github.com/go-redis/redis)
+Mapping IP to Country use [go-redis/redis/v8](https://github.com/go-redis/redis)
 
+## GeoLite2 City
+1. sign up : https://www.maxmind.com/en/home
+2. guide : https://blog.csdn.net/qq_26373925/article/details/111876765
 ## Run
 ### config
-`config/config.go`
+Path : `config/config.go`
+
 ``` go
 // config for redis
 var (
