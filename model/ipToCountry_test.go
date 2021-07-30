@@ -77,7 +77,6 @@ func TestALL(t *testing.T) {
 			ip := fmt.Sprintf("%s.%s.%s.%s", strconv.Itoa(rand.Intn(254)+1), utils.RandomString(256), utils.RandomString(256), utils.RandomString(256))
 			t.Log(ip, client.FindCityByIp(ip))
 		}
-		t.Log("111.71.213.250", client.FindCityByIp("111.71.213.250"))
 
 		defer client.Conn.FlushDB(ctx)
 	})
