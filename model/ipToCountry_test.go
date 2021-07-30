@@ -35,3 +35,12 @@ func TestImportIpsToRedis(t *testing.T) {
 
 	client.ImportIpsToRedis(config.FilePath + "GeoLite2-City-Blocks-IPv4.csv")
 }
+
+func TestImportCityToRedis(t *testing.T) {
+	var ctx = context.Background()
+	conn := connect.ConnectRedis()
+	client := NewClient(conn)
+	defer client.Conn.FlushDB(ctx)
+
+	client.ImportCityToRedis(config.FilePath + "GeoLite2-City-Locations-en.csv")
+}

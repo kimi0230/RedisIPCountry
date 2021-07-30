@@ -3,6 +3,7 @@ package model
 import (
 	"RedisIPCountry/utils"
 	"context"
+	"encoding/json"
 	"log"
 	"strconv"
 	"strings"
@@ -78,6 +79,53 @@ func (c *Client) ImportIpsToRedis(filename string) {
 
 	if _, err := pipe.Exec(ctx); err != nil {
 		log.Println("pipeline err in ImportIpsToRedis: ", err)
+		return
+	}
+}
+
+type cityInfo struct {
+	CityId  string
+	Country string
+	Region  string
+	City    string
+}
+
+/**
+ * @description: 產生Hash key=cityid2city, field= $city.CityId, value=$value
+ * @param {string} filename
+ * @return {*}
+ */
+func (c *Client) ImportCityToRedis(filename string) {
+	res := utils.CSVReader(filename)
+	/*
+		geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,subdivision_1_iso_code,subdivision_1_name,subdivision_2_iso_code,subdivision_2_name,city_name,metro_code,time_zone,is_in_european_union
+		1665148,en,AS,Asia,TW,Taiwan,NWT,"New Taipei",,,"New Taipei",,Asia/Taipei,0
+	*/
+	var ctx = context.Background()
+	pipe := c.Conn.Pipeline()
+	for count, row := range res {
+		if len(row) < 4 || !utils.IsDigital(row[0]) {
+			continue
+		}
+
+		city := cityInfo{
+			CityId:  row[0],
+			Region:  row[3],
+			Country: row[5],
+			City:    row[6],
+		}
+		value, err := json.Marshal(city)
+		pipe.HSet(ctx, "cityid2city:", city.CityId, value)
+		if err != nil {
+			log.Println("marshal json failed, err: ", err)
+		}
+		if (count+1)%1000 == 0 {
+			return
+		}
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		log.Println("pipeline err in ImportCityToRedis: ", err)
 		return
 	}
 }

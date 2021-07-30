@@ -5,8 +5,14 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 )
 
+/**
+ * @description:  讀取csv
+ * @param {string} filename
+ * @return {*}
+ */
 func CSVReader(filename string) [][]string {
 	csvfile, err := os.Open(filename)
 	if err != nil {
@@ -25,4 +31,14 @@ func CSVReader(filename string) [][]string {
 		res = append(res, record)
 	}
 	return res
+}
+
+/**
+ * @description: 判斷是否為數字
+ * @param {string} s
+ * @return {*}
+ */
+func IsDigital(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
 }
