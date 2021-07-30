@@ -4,8 +4,10 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
+	"testing"
 )
 
 /**
@@ -41,4 +43,22 @@ func CSVReader(filename string) [][]string {
 func IsDigital(s string) bool {
 	_, err := strconv.ParseFloat(s, 64)
 	return err == nil
+}
+
+/**
+ * @description: unit test 錯誤時跳error
+ * @param {*testing.T} t
+ * @param {bool} v
+ * @return {*}
+ */
+func AssertTrue(t *testing.T, v bool) {
+	t.Helper()
+	if !v {
+		t.Error("assert false but get a true value")
+	}
+}
+
+func RandomString(up int) string {
+	rand.Seed(rand.Int63())
+	return strconv.Itoa(rand.Intn(up))
 }

@@ -115,12 +115,16 @@ func (c *Client) ImportCityToRedis(filename string) {
 			City:    row[6],
 		}
 		value, err := json.Marshal(city)
+
 		pipe.HSet(ctx, "cityid2city:", city.CityId, value)
 		if err != nil {
 			log.Println("marshal json failed, err: ", err)
 		}
 		if (count+1)%1000 == 0 {
-			return
+			if _, err := pipe.Exec(ctx); err != nil {
+				log.Println("pipeline err in ImportCityToRedis: ", err)
+				return
+			}
 		}
 	}
 
@@ -128,4 +132,27 @@ func (c *Client) ImportCityToRedis(filename string) {
 		log.Println("pipeline err in ImportCityToRedis: ", err)
 		return
 	}
+}
+
+/**
+ * @description:
+ * @param {string} ip
+ * @return {*}
+ */
+func (c *Client) FindCityByIp(ip string) string {
+	var ctx = context.Background()
+	ipAddress := strconv.Itoa(int(c.IpToScore(ip)))
+	// Min:最小分數, Max:"10" 最大分數, Offset:0 類似 sql 的 limit, Count: 一次返回多少數據
+	res := c.Conn.ZRevRangeByScore(ctx, "ip2cityid:", &redis.ZRangeBy{Max: ipAddress, Min: "0", Offset: 0, Count: 2}).Val()
+	if len(res) == 0 {
+		return ""
+	}
+
+	// 從 ip2cityid (zset) 取出 city id 並在 cityid2city(hash)中找城市資訊
+	cityId := strings.Split(res[0], "_")[0]
+	var result cityInfo
+	if err := json.Unmarshal([]byte(c.Conn.HGet(ctx, "cityid2city:", cityId).Val()), &result); err != nil {
+		log.Fatalln("unmarshal err: ", err)
+	}
+	return strings.Join([]string{result.CityId, result.City, result.Country, result.Region}, " ")
 }
