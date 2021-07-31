@@ -34,13 +34,12 @@ func (c *Client) IpToScore(ip string) int64 {
  * @param {string} filename
  * @return {*}
  */
-func (c *Client) ImportIpsToRedis(filename string) {
+func (c *Client) ImportIpsToRedis(ctx context.Context, filename string) {
 	res := utils.CSVReader(filename)
 	/*
 		network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider,postal_code,latitude,longitude,accuracy_radius
 		1.0.0.0/24,2077456,2077456,,0,0,,-33.4940,143.2104,1000
 	*/
-	var ctx = context.Background()
 	pipe := c.Conn.Pipeline()
 	for count, row := range res {
 		var (
@@ -95,13 +94,12 @@ type cityInfo struct {
  * @param {string} filename
  * @return {*}
  */
-func (c *Client) ImportCityToRedis(filename string) {
+func (c *Client) ImportCityToRedis(ctx context.Context, filename string) {
 	res := utils.CSVReader(filename)
 	/*
 		geoname_id,locale_code,continent_code,continent_name,country_iso_code,country_name,subdivision_1_iso_code,subdivision_1_name,subdivision_2_iso_code,subdivision_2_name,city_name,metro_code,time_zone,is_in_european_union
 		1665148,en,AS,Asia,TW,Taiwan,NWT,"New Taipei",,,"New Taipei",,Asia/Taipei,0
 	*/
-	var ctx = context.Background()
 	pipe := c.Conn.Pipeline()
 	for count, row := range res {
 		if len(row) < 4 || !utils.IsDigital(row[0]) {
@@ -139,8 +137,7 @@ func (c *Client) ImportCityToRedis(filename string) {
  * @param {string} ip
  * @return {*}
  */
-func (c *Client) FindCityByIp(ip string) string {
-	var ctx = context.Background()
+func (c *Client) FindCityByIp(ctx context.Context, ip string) string {
 	ipAddress := strconv.Itoa(int(c.IpToScore(ip)))
 	// Min:最小分數, Max:"10" 最大分數, Offset:0 類似 sql 的 limit, Count: 一次返回多少數據
 	res := c.Conn.ZRevRangeByScore(ctx, "ip2cityid:", &redis.ZRangeBy{Max: ipAddress, Min: "0", Offset: 0, Count: 2}).Val()

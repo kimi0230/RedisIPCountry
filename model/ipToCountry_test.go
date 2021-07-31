@@ -41,7 +41,7 @@ func TestImportIpsToRedis(t *testing.T) {
 	client := NewClient(conn)
 	defer client.Conn.FlushDB(ctx)
 
-	client.ImportIpsToRedis(config.FilePath + "GeoLite2-City-Blocks-IPv4.csv")
+	client.ImportIpsToRedis(ctx, config.FilePath+"GeoLite2-City-Blocks-IPv4.csv")
 }
 
 func TestImportCityToRedis(t *testing.T) {
@@ -50,7 +50,7 @@ func TestImportCityToRedis(t *testing.T) {
 	client := NewClient(conn)
 	defer client.Conn.FlushDB(ctx)
 
-	client.ImportCityToRedis(config.FilePath + "GeoLite2-City-Locations-en.csv")
+	client.ImportCityToRedis(ctx, config.FilePath+"GeoLite2-City-Locations-en.csv")
 }
 
 //  go test  -run ^TestALL$ RedisIPCountry/model -v
@@ -61,21 +61,21 @@ func TestALL(t *testing.T) {
 
 	t.Run("Test ip lookup", func(t *testing.T) {
 		t.Log("Importing IP addresses to Redis...")
-		client.ImportIpsToRedis(config.FilePath + "GeoLite2-City-Blocks-IPv4.csv")
+		client.ImportIpsToRedis(ctx, config.FilePath+"GeoLite2-City-Blocks-IPv4.csv")
 		ranges := client.Conn.ZCard(ctx, "ip2cityid:").Val()
 		t.Log("Loaded ranges into Redis:", ranges)
 		utils.AssertTrue(t, ranges > 1000)
 
 		t.Log("Importing Location lookups to Redis...")
-		client.ImportCityToRedis(config.FilePath + "GeoLite2-City-Locations-en.csv")
+		client.ImportCityToRedis(ctx, config.FilePath+"GeoLite2-City-Locations-en.csv")
 		cities := client.Conn.HLen(ctx, "cityid2city:").Val()
 		t.Log("Loaded city lookups into Redis:", cities)
 		utils.AssertTrue(t, cities > 1000)
 
 		// 隨機測試ip
-		for i := 0; i < 5; i++ {
+		for i := 0; i < 10; i++ {
 			ip := fmt.Sprintf("%s.%s.%s.%s", strconv.Itoa(rand.Intn(254)+1), utils.RandomString(256), utils.RandomString(256), utils.RandomString(256))
-			t.Log(ip, client.FindCityByIp(ip))
+			t.Log(ip, client.FindCityByIp(ctx, ip))
 		}
 
 		defer client.Conn.FlushDB(ctx)
