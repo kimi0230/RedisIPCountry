@@ -30,3 +30,6 @@ docker-compose up -d
 ``` shell
 docker-compose down
 ```
+
+### Reference
+* [go-redis 連接池](https://www.huaweicloud.com/articles/db24f1e8b4a4f0218ddf08463d8ec871.html)
